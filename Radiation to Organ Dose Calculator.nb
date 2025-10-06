@@ -1,0 +1,401 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 14.3' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[     16029,        393]
+NotebookOptionsPosition[     14853,        367]
+NotebookOutlinePosition[     15244,        383]
+CellTagsIndexPosition[     15201,        380]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[TextData[{
+ "Marco Gonzalez\nPHYS 572 - Introduction to Health Physics\nCalculator \
+(Still in Progress for um, optimization and further comments for ease of \
+interpretation)\n",
+ StyleBox["\nThe following calculates the effective dose and total dose in \
+which a in individual was exposed to in an irradiating environment . We \
+assume the cumulation of absorbed doses to be collected over the duration of \
+365 days . We have the following data involving the type of radiation \
+exposure and corresponding organs : \n  \n  Organ 1 - 0.13 cGy of alpha \
+radiation (770 keV) to the lungs\n  Organ 2 - 0.24 cGy of beta radiation (1.1 \
+MeV) to the stomach\n  Organ 3 - 0.15 cGy of neutron radiation (1.1 MeV) to \
+the bladder (assuming only tissue)\n  Organ 4 - 0.7 cGy of gamma (662 keV)  \
+to the thyroid  (Assuming only tissue)\n  Organ 5 -    1.9 cGy of gamma (662 \
+keV) to the whole body (Assuming uniformity across entire body)\n\nWe follow \
+the methodology present in ICRP Publication 103 \"The 2007 Recommendations of \
+the International Commission on Radiological Protection\" . \n  \nThe ICRP \
+uses a mathematical framework to address and describe radiation doses which \
+take into account the types of radiation and tissue sensitivity . \
+Documentation such as ICRP Publication 103 \"The 2007 Recommendations of the \
+International Commission on Radiological Protection\"  show various tables \
+and equations in which such methodology is used to calculate radiation doses \
+. The following is are mathematical approaches as mentioned in ICRP \
+documentation .",
+  FontSize->12]
+}], "Text",
+ CellChangeTimes->{{3.968778876820641*^9, 
+  3.968778958583315*^9}},ExpressionUUID->"89cacda6-c4c9-4faa-ad08-\
+5ef9a161ec47"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"(*", 
+   RowBox[{"Our", " ", "organs", " ", "of", " ", "interest"}], "*)"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{
+    RowBox[{"organs", "=", 
+     RowBox[{"{", "\[IndentingNewLine]", 
+      RowBox[{"\"\<Lungs\>\"", ",", "\[IndentingNewLine]", "\"\<Stomach\>\"", 
+       ",", "\[IndentingNewLine]", "\"\<Bladder\>\"", ",", 
+       "\[IndentingNewLine]", "\"\<Thyroid\>\"", ",", 
+       "\[IndentingNewLine]", "\"\<Whole Body\>\""}], "\[IndentingNewLine]", 
+      "}"}]}], ";"}], "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{"In", " ", "units", " ", "of", " ", "cGy"}], ",", " ", 
+     RowBox[{"of", " ", "course"}], ",", " ", 
+     RowBox[{"we", " ", "have", " ", "our", " ", "absorbed", " ", "doses"}]}],
+     "*)"}], "\n", 
+   RowBox[{
+    RowBox[{"absorbedDoses", "=", 
+     RowBox[{"{", "\[IndentingNewLine]", 
+      RowBox[{
+      "0.13", ",", "\[IndentingNewLine]", "0.24", ",", "\[IndentingNewLine]", 
+       "0.15", ",", "\[IndentingNewLine]", "0.7", ",", "\[IndentingNewLine]", 
+       "1.9"}], "}"}]}], ";"}], " ", "\[IndentingNewLine]", 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{"We", " ", "have", " ", "our", " ", "weighted", " ", "tissues", " ", 
+      RowBox[{"(", "WT", ")"}]}], ",", " ", 
+     RowBox[{
+     "in", " ", "accordance", " ", "to", " ", "ICRP", " ", "Publicaiton", " ",
+       "103"}]}], "*)"}], "\n", 
+   RowBox[{
+    RowBox[{"tissueWeights", "=", 
+     RowBox[{"{", "\[IndentingNewLine]", 
+      RowBox[{
+      "0.12", ",", "\[IndentingNewLine]", "0.12", ",", "\[IndentingNewLine]", 
+       "0.04", ",", "\[IndentingNewLine]", "0.04", ",", "\[IndentingNewLine]",
+        "1.0"}], "}"}]}], ";"}], " ", "\n", "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{"Radiation", " ", "types"}], "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"radiationTypes", "=", 
+     RowBox[{"{", 
+      RowBox[{"\"\<Alpha\>\"", ",", "\"\<Beta\>\"", ",", "\"\<Neutron\>\"", 
+       ",", "\"\<Gamma\>\"", ",", "\"\<Gamma\>\""}], "}"}]}], ";"}], "\n", 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", "Energies", "*)"}], "\n", 
+   RowBox[{
+    RowBox[{"energies", "=", 
+     RowBox[{"{", "\[IndentingNewLine]", 
+      RowBox[{
+      "0.770", ",", "\[IndentingNewLine]", "1.1", ",", "\[IndentingNewLine]", 
+       "1.1", ",", "\[IndentingNewLine]", "0.662", ",", "\[IndentingNewLine]",
+        "0.662"}], "\[IndentingNewLine]", "}"}]}], ";"}], "\n", 
+   "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+    "We", " ", "define", " ", "the", " ", "radiation", " ", "weighting", " ", 
+     "factor", " ", "function", " ", "based", " ", "on", " ", "ICRP", " ", 
+     "103"}], "*)"}], "\[IndentingNewLine]", "\n", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"wrFunction", "[", 
+      RowBox[{"type_", ",", "energy_"}], "]"}], ":=", "\[IndentingNewLine]", 
+     "\[IndentingNewLine]", 
+     RowBox[{"Switch", "[", 
+      RowBox[{
+      "type", ",", "\[IndentingNewLine]", 
+       "\[IndentingNewLine]", "\"\<Alpha\>\"", ",", "20", ",", 
+       "\[IndentingNewLine]", "\"\<Beta\>\"", ",", "1", ",", 
+       "\[IndentingNewLine]", "\"\<Gamma\>\"", ",", "1", ",", 
+       "\[IndentingNewLine]", "\"\<Neutron\>\"", ",", "\[IndentingNewLine]", 
+       "\[IndentingNewLine]", 
+       RowBox[{"If", "[", 
+        RowBox[{
+         RowBox[{"NumericQ", "[", "energy", "]"}], ",", "\[IndentingNewLine]",
+          "\[IndentingNewLine]", 
+         RowBox[{"Which", "[", 
+          RowBox[{
+           RowBox[{"energy", "<", "1"}], ",", 
+           RowBox[{"2.5", "+", 
+            RowBox[{"18.2", " ", 
+             RowBox[{"Exp", "[", 
+              RowBox[{
+               RowBox[{"-", 
+                RowBox[{
+                 RowBox[{"(", 
+                  RowBox[{"Log", "[", "energy", "]"}], ")"}], "^", "2"}]}], "/",
+                "6"}], "]"}]}]}], ",", "\[IndentingNewLine]", 
+           "\[IndentingNewLine]", 
+           RowBox[{"1", "<=", "energy", "<=", "50"}], ",", 
+           RowBox[{"5", "+", 
+            RowBox[{"17", " ", 
+             RowBox[{"Exp", "[", 
+              RowBox[{
+               RowBox[{"-", 
+                RowBox[{
+                 RowBox[{"(", 
+                  RowBox[{"Log", "[", 
+                   RowBox[{"2", " ", "energy"}], "]"}], ")"}], "^", "2"}]}], "/",
+                "6"}], "]"}]}]}], ",", "\[IndentingNewLine]", 
+           "\[IndentingNewLine]", 
+           RowBox[{"energy", ">", "50"}], ",", 
+           RowBox[{"2.5", "+", 
+            RowBox[{"3.25", " ", 
+             RowBox[{"Exp", "[", 
+              RowBox[{
+               RowBox[{"-", 
+                RowBox[{
+                 RowBox[{"(", 
+                  RowBox[{"Log", "[", 
+                   RowBox[{"0.04", " ", "energy"}], "]"}], ")"}], "^", 
+                 "2"}]}], "/", "6"}], "]"}]}]}]}], "]"}], ",", "Null"}], " ", 
+        "]"}]}], "]"}]}], ";"}], "\n", "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{"Compute", " ", "WR", " ", "for", " ", "each", " ", "exposure"}], 
+    "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"wrValues", "=", 
+     RowBox[{"MapThread", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"wrFunction", "[", 
+         RowBox[{"#1", ",", "#2"}], "]"}], "&"}], ",", 
+       RowBox[{"{", 
+        RowBox[{"radiationTypes", ",", "energies"}], "}"}]}], "]"}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Print", "[", 
+     RowBox[{"\"\<\\nThe wrValues: \>\"", ",", " ", "wrValues"}], "]"}], 
+    ";"}], "\n", "\n", 
+   RowBox[{"(*", 
+    RowBox[{
+    "Compute", " ", "Equivalent", " ", "Doses", " ", "HT", " ", "in", " ", 
+     "mSv"}], "*)"}], "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{"HT_mSv", "=", 
+     RowBox[{"absorbedDose_cGy", "*", "WR", "*", "10"}]}], "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"equivalentDoses", "=", 
+     RowBox[{"absorbedDoses", "*", "wrValues", "*", "10"}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"Print", "[", 
+     RowBox[{"\"\<\\nEquivalentDoses: \>\"", ",", " ", "equivalentDoses"}], 
+     "]"}], ";"}], "\n", "\[IndentingNewLine]", 
+   RowBox[{"(*", 
+    RowBox[{
+     RowBox[{
+     "Compute", " ", "Effective", " ", "Doses", " ", "E", " ", "in", " ", 
+      "mSv"}], ",", " ", 
+     RowBox[{
+      RowBox[{"in", " ", "which", " ", "E"}], " ", "=", " ", 
+      RowBox[{
+       RowBox[{"(", "WT", ")"}], 
+       RowBox[{"(", "HT", ")"}]}]}]}], "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"effectiveDoses", "=", 
+     RowBox[{"tissueWeights", "*", "equivalentDoses"}]}], ";"}], "\[IndentingNewLine]", 
+   RowBox[{"Print", "[", 
+    RowBox[{"\"\<\\nEffective Dose\>\"", ",", " ", "effectiveDoses"}], "]"}], 
+   "\n", 
+   InterpretationBox[
+    RowBox[{"\"\<\\nEffective Dose\>\"", "\[InvisibleSpace]", 
+     RowBox[{"{", 
+      RowBox[{
+      "3.12`", ",", "0.288`", ",", "1.2196076129743134`", ",", "0.28`", ",", 
+       "19.`"}], "}"}]}],
+    SequenceForm[
+    "\nEffective Dose", {3.12, 0.288, 1.2196076129743134`, 0.28, 19.}],
+    Editable->False], "\[IndentingNewLine]", "\n", 
+   RowBox[{"(*", 
+    RowBox[{"Total", " ", "Effective", " ", "Dose"}], "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"totalEffectiveDose", "=", 
+     RowBox[{"Total", "[", "effectiveDoses", "]"}]}], ";"}], 
+   "\[IndentingNewLine]", "\[IndentingNewLine]", 
+   RowBox[{"Print", "[", 
+    RowBox[{"\"\<Total Effective Dose: \>\"", ",", " ", 
+     "totalEffectiveDose"}], "]"}], "\n", 
+   RowBox[{"(*", 
+    RowBox[{"Display", " ", "results"}], "*)"}], "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{"resultsTable", "=", 
+     RowBox[{"Transpose", "[", 
+      RowBox[{"{", 
+       RowBox[{"organs", ",", "equivalentDoses", ",", "effectiveDoses"}], 
+       "}"}], "]"}]}], ";"}], "\n", "\[IndentingNewLine]", 
+   RowBox[{"Grid", "[", 
+    RowBox[{
+     RowBox[{"Prepend", "[", 
+      RowBox[{"resultsTable", ",", 
+       RowBox[{"{", 
+        RowBox[{"\"\<Organ\>\"", 
+         ",", "\"\<Calculated Equivalent Dose (HT) mSv\>\"", 
+         ",", "\"\<Calculated Effective Dose (E) \\nmSv\>\""}], "}"}]}], 
+      "]"}], ",", 
+     RowBox[{"Frame", "->", "All"}], ",", " ", 
+     RowBox[{"Alignment", "->", "Center"}]}], "]"}], "\n", "\[IndentingNewLine]", 
+   RowBox[{"Print", "[", 
+    RowBox[{"\"\<Total Effective Dose: \>\"", ",", "totalEffectiveDose", 
+     ",", "\"\< mSv\>\""}], "]"}]}]}]], "Input",
+ CellChangeTimes->{
+  3.964173289659082*^9, 3.964173351583563*^9, {3.964173486393489*^9, 
+   3.9641735073800583`*^9}, {3.964173812606057*^9, 3.964173829423872*^9}, {
+   3.96417404761611*^9, 3.96417404806605*^9}, {3.964174240866336*^9, 
+   3.964174355097281*^9}, 3.964174452576651*^9, {3.964175833881763*^9, 
+   3.964175878777679*^9}, {3.9641759447714043`*^9, 3.9641760000238733`*^9}, {
+   3.96417741590806*^9, 3.9641774837925377`*^9}, {3.9641942864628983`*^9, 
+   3.964194299876378*^9}, {3.968440464374148*^9, 3.968440509033389*^9}},
+ CellLabel->"In[19]:=",ExpressionUUID->"29905a23-a994-41fd-aebd-522a0b156ad5"],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\nThe wrValues: \"\>", "\[InvisibleSpace]", 
+   RowBox[{"{", 
+    RowBox[{"20", ",", "1", ",", "20.32679354957189`", ",", "1", ",", "1"}], 
+    "}"}]}],
+  SequenceForm["\nThe wrValues: ", {20, 1, 20.32679354957189, 1, 1}],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.968778970353766*^9},
+ CellLabel->
+  "During evaluation of \
+In[19]:=",ExpressionUUID->"87212272-0be3-487a-831e-786a82d901ff"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\nEquivalentDoses: \"\>", "\[InvisibleSpace]", 
+   RowBox[{"{", 
+    RowBox[{
+    "26.`", ",", "2.4`", ",", "30.490190324357833`", ",", "7.`", ",", 
+     "19.`"}], "}"}]}],
+  SequenceForm[
+  "\nEquivalentDoses: ", {26., 2.4, 30.490190324357833`, 7., 19.}],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.968778970354991*^9},
+ CellLabel->
+  "During evaluation of \
+In[19]:=",ExpressionUUID->"53dd862e-fcaa-48cd-9ae4-72777b4e442e"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\nEffective Dose\"\>", "\[InvisibleSpace]", 
+   RowBox[{"{", 
+    RowBox[{
+    "3.12`", ",", "0.288`", ",", "1.2196076129743134`", ",", "0.28`", ",", 
+     "19.`"}], "}"}]}],
+  SequenceForm[
+  "\nEffective Dose", {3.12, 0.288, 1.2196076129743134`, 0.28, 19.}],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.968778970355732*^9},
+ CellLabel->
+  "During evaluation of \
+In[19]:=",ExpressionUUID->"2ebb43e1-e67b-46ba-940e-da21b32d22c1"]
+}, Open  ]],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"\\nEffective Dose\"\>", "\[InvisibleSpace]", 
+   RowBox[{"{", 
+    RowBox[{
+    "3.12`", ",", "0.288`", ",", "1.2196076129743134`", ",", "0.28`", ",", 
+     "19.`"}], "}"}]}],
+  SequenceForm[
+  "\nEffective Dose", {3.12, 0.288, 1.2196076129743134`, 0.28, 19.}],
+  Editable->False]], "Output",
+ CellChangeTimes->{3.968778970356242*^9},
+ CellLabel->"Out[31]=",ExpressionUUID->"41522f18-7a37-4c0b-b6ec-04ff4823bd60"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Total Effective Dose: \"\>", "\[InvisibleSpace]", 
+   "23.907607612974314`"}],
+  SequenceForm["Total Effective Dose: ", 23.907607612974314`],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.968778970356943*^9},
+ CellLabel->
+  "During evaluation of \
+In[19]:=",ExpressionUUID->"aeda0966-5bef-4087-8e48-da45d244cca6"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {"\<\"Organ\"\>", "\<\"Calculated Equivalent Dose (HT) mSv\"\>", \
+"\<\"Calculated Effective Dose (E) \\nmSv\"\>"},
+    {"\<\"Lungs\"\>", "26.`", "3.12`"},
+    {"\<\"Stomach\"\>", "2.4`", "0.288`"},
+    {"\<\"Bladder\"\>", "30.490190324357833`", "1.2196076129743134`"},
+    {"\<\"Thyroid\"\>", "7.`", "0.28`"},
+    {"\<\"Whole Body\"\>", "19.`", "19.`"}
+   },
+   AutoDelete->False,
+   GridBoxAlignment->{"Columns" -> {{Center}}},
+   GridBoxFrame->{"Columns" -> {{True}}, "Rows" -> {{True}}},
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}],
+  "Grid"]], "Output",
+ CellChangeTimes->{3.9687789703575573`*^9},
+ CellLabel->"Out[35]=",ExpressionUUID->"81d93d3f-5ad7-45c9-a3b2-9f1ac6077b6c"],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Total Effective Dose: \"\>", "\[InvisibleSpace]", 
+   "23.907607612974314`", "\[InvisibleSpace]", "\<\" mSv\"\>"}],
+  SequenceForm["Total Effective Dose: ", 23.907607612974314`, " mSv"],
+  Editable->False]], "Print",
+ CellChangeTimes->{3.968778970358205*^9},
+ CellLabel->
+  "During evaluation of \
+In[19]:=",ExpressionUUID->"73b984cd-bd6f-4478-9cd7-1c6d87e7c0be"]
+}, Open  ]]
+},
+WindowSize->{948, 1067},
+WindowMargins->{{Automatic, 8}, {Automatic, 8}},
+FrontEndVersion->"14.3 for Mac OS X ARM (64-bit) (July 8, 2025)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"686631c5-bd45-481f-b6e0-22819ce1604d"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 1734, 27, 348, "Text",ExpressionUUID->"89cacda6-c4c9-4faa-ad08-5ef9a161ec47"],
+Cell[CellGroupData[{
+Cell[2313, 51, 9061, 214, 1704, "Input",ExpressionUUID->"29905a23-a994-41fd-aebd-522a0b156ad5"],
+Cell[CellGroupData[{
+Cell[11399, 269, 449, 11, 41, "Print",ExpressionUUID->"87212272-0be3-487a-831e-786a82d901ff"],
+Cell[11851, 282, 483, 13, 41, "Print",ExpressionUUID->"53dd862e-fcaa-48cd-9ae4-72777b4e442e"],
+Cell[12337, 297, 487, 13, 41, "Print",ExpressionUUID->"2ebb43e1-e67b-46ba-940e-da21b32d22c1"]
+}, Open  ]],
+Cell[12839, 313, 462, 11, 53, "Output",ExpressionUUID->"41522f18-7a37-4c0b-b6ec-04ff4823bd60"],
+Cell[13304, 326, 367, 9, 23, "Print",ExpressionUUID->"aeda0966-5bef-4087-8e48-da45d244cca6"],
+Cell[13674, 337, 748, 16, 152, "Output",ExpressionUUID->"81d93d3f-5ad7-45c9-a3b2-9f1ac6077b6c"],
+Cell[14425, 355, 412, 9, 23, "Print",ExpressionUUID->"73b984cd-bd6f-4478-9cd7-1c6d87e7c0be"]
+}, Open  ]]
+}
+]
+*)
+
